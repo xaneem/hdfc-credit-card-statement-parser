@@ -54,8 +54,8 @@ def process(input, output, password):
             "description": row[1],
             "currency": row[2][0:3],
             "forex_amount": row[2][4:],
-            "forex_rate": '%.2f' % (float(row[amount_index].replace(" Cr", "").replace(",",""))/float(row[2][4:].replace(",",""))),
-            "amount": row[amount_index].replace(" Cr",""),
+            "forex_rate": '%.2f' % (float(row[amount_index].replace("Cr", "").replace(" ", "").replace(",",""))/float(row[2][4:].replace(",",""))),
+            "amount": row[amount_index].replace("Cr","").replace(" ", "").replace(",",""),
             "type": "Cr" if "Cr" in row[amount_index] else "Dr"
         })
 
