@@ -9,9 +9,13 @@ def process(input, output, password):
 
     # Indian transactions
     indian = []
+    
+    print("Domestic")
     for (index, row) in enumerate(pages[0].extract_table()):
         if index == 0 or row[0] == "" or row[0] == None:
             continue
+        
+        print(row)
 
         indian.append({
             "date": row[0].replace("null",""),
@@ -19,8 +23,8 @@ def process(input, output, password):
             "currency": "INR",
             "forex_amount": "",
             "forex_rate": "",
-            "amount": row[3].replace("Cr",""),
-            "type": "Cr" if "Cr" in row[3] else "Dr"
+            "amount": row[2].replace("Cr",""),
+            "type": "Cr" if "Cr" in row[2] else "Dr"
         })
 
     total_amount += sum(float(item["amount"].replace(",","")) * (0 if item["type"] == "Cr" else 1) for item in indian)
@@ -31,19 +35,24 @@ def process(input, output, password):
     }
 
     foreign = []
+    
+    print("Foreign")
+    
     for (index, row) in enumerate(pages[1].extract_table(table_settings=table_settings)):
 
         if index == 0 or row[0] == "" or row[0] == None:
             continue
+        
+        print(row)
 
         foreign.append({
             "date": row[0].replace("null",""),
             "description": row[1],
             "currency": row[2][0:3],
             "forex_amount": row[2][4:],
-            "forex_rate": '%.2f' % (float(row[4].replace(" Cr", "").replace(",",""))/float(row[2][4:].replace(",",""))),
-            "amount": row[4].replace(" Cr",""),
-            "type": "Cr" if "Cr" in row[4] else "Dr"
+            "forex_rate": '%.2f' % (float(row[3].replace(" Cr", "").replace(",",""))/float(row[2][4:].replace(",",""))),
+            "amount": row[3].replace(" Cr",""),
+            "type": "Cr" if "Cr" in row[3] else "Dr"
         })
 
     # Credits in foreign statements are marked as deduction
