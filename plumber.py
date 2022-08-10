@@ -15,9 +15,7 @@ def process(input, output, password):
         if index == 0 or row[0] == "" or row[0] == None:
             continue
         
-        if row[2] == "":
-            # Solving the case where some PDFs return a blank column when parsed
-            del row[2]
+        amount_index = len(row) - 2
         
         print(row)
 
@@ -27,8 +25,8 @@ def process(input, output, password):
             "currency": "INR",
             "forex_amount": "",
             "forex_rate": "",
-            "amount": row[2].replace("Cr",""),
-            "type": "Cr" if "Cr" in row[2] else "Dr"
+            "amount": row[amount_index].replace("Cr",""),
+            "type": "Cr" if "Cr" in row[amount_index] else "Dr"
         })
     
     total_amount += sum(float(item["amount"].replace(",","")) * (0 if item["type"] == "Cr" else 1) for item in indian)
@@ -47,6 +45,8 @@ def process(input, output, password):
         if index == 0 or row[0] == "" or row[0] == None:
             continue
         
+        amount_index = len(row) - 2
+        
         print(row)
 
         foreign.append({
@@ -54,9 +54,9 @@ def process(input, output, password):
             "description": row[1],
             "currency": row[2][0:3],
             "forex_amount": row[2][4:],
-            "forex_rate": '%.2f' % (float(row[3].replace(" Cr", "").replace(",",""))/float(row[2][4:].replace(",",""))),
-            "amount": row[3].replace(" Cr",""),
-            "type": "Cr" if "Cr" in row[3] else "Dr"
+            "forex_rate": '%.2f' % (float(row[amount_index].replace(" Cr", "").replace(",",""))/float(row[2][4:].replace(",",""))),
+            "amount": row[amount_index].replace(" Cr",""),
+            "type": "Cr" if "Cr" in row[amount_index] else "Dr"
         })
 
     # Credits in foreign statements are marked as deduction
