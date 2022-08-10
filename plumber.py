@@ -15,6 +15,10 @@ def process(input, output, password):
         if index == 0 or row[0] == "" or row[0] == None:
             continue
         
+        if row[2] == "":
+            # Solving the case where some PDFs return a blank column when parsed
+            del row[2]
+        
         print(row)
 
         indian.append({
@@ -26,7 +30,7 @@ def process(input, output, password):
             "amount": row[2].replace("Cr",""),
             "type": "Cr" if "Cr" in row[2] else "Dr"
         })
-
+    
     total_amount += sum(float(item["amount"].replace(",","")) * (0 if item["type"] == "Cr" else 1) for item in indian)
 
     # Foreign transactions
