@@ -6,61 +6,62 @@ def process(input, output, password):
     pages = pdf.pages
 
     total_amount=0.0
-
-    # Indian transactions
-    indian = []
     
-    print("Domestic")
-    for (index, row) in enumerate(pages[0].extract_table()):
-        if index == 0 or row[0] == "" or row[0] == None:
-            continue
+    for page in pages:
+        if page.extract_text().find("Domestic Transactions") > 0:
+            print("Domestic");
+            
+            indian = []
+            for (index, row) in enumerate(page.extract_table()):
+                if index == 0 or row[0] == "" or row[0] == None:
+                    continue
+
+                amount_index = len(row) - 2
+                
+                print(row)
+
+                indian.append({
+                    "date": row[0].replace("null",""),
+                    "description": row[1],
+                    "currency": "INR",
+                    "forex_amount": "",
+                    "forex_rate": "",
+                    "amount": row[amount_index].replace("Cr",""),
+                    "type": "Cr" if "Cr" in row[amount_index] else "Dr"
+                })
         
-        amount_index = len(row) - 2
-        
-        print(row)
+                total_amount += sum(float(item["amount"].replace(",","")) * (0 if item["type"] == "Cr" else 1) for item in indian)
 
-        indian.append({
-            "date": row[0].replace("null",""),
-            "description": row[1],
-            "currency": "INR",
-            "forex_amount": "",
-            "forex_rate": "",
-            "amount": row[amount_index].replace("Cr",""),
-            "type": "Cr" if "Cr" in row[amount_index] else "Dr"
-        })
-    
-    total_amount += sum(float(item["amount"].replace(",","")) * (0 if item["type"] == "Cr" else 1) for item in indian)
+        elif page.extract_text().find("International Transactions") > 0:
+            print("Foreign")
+            foreign = []
 
-    # Foreign transactions
-    table_settings={
-        "explicit_vertical_lines": [380] # Split the currency
-    }
+            # Foreign transactions
+            table_settings={
+                "explicit_vertical_lines": [380] # Split the currency
+            }
+            
+            for (index, row) in enumerate(page.extract_table(table_settings=table_settings)):
 
-    foreign = []
-    
-    print("Foreign")
-    
-    for (index, row) in enumerate(pages[1].extract_table(table_settings=table_settings)):
+                if index == 0 or row[0] == "" or row[0] == None:
+                    continue
+                
+                amount_index = len(row) - 2
+                
+                print(row)
 
-        if index == 0 or row[0] == "" or row[0] == None:
-            continue
-        
-        amount_index = len(row) - 2
-        
-        print(row)
+                foreign.append({
+                    "date": row[0].replace("null",""),
+                    "description": row[1],
+                    "currency": row[2][0:3],
+                    "forex_amount": row[2][4:],
+                    "forex_rate": '%.2f' % (float(row[amount_index].replace("Cr", "").replace(" ", "").replace(",",""))/float(row[2][4:].replace(",",""))),
+                    "amount": row[amount_index].replace("Cr","").replace(" ", "").replace(",",""),
+                    "type": "Cr" if "Cr" in row[amount_index] else "Dr"
+                })
 
-        foreign.append({
-            "date": row[0].replace("null",""),
-            "description": row[1],
-            "currency": row[2][0:3],
-            "forex_amount": row[2][4:],
-            "forex_rate": '%.2f' % (float(row[amount_index].replace("Cr", "").replace(" ", "").replace(",",""))/float(row[2][4:].replace(",",""))),
-            "amount": row[amount_index].replace("Cr","").replace(" ", "").replace(",",""),
-            "type": "Cr" if "Cr" in row[amount_index] else "Dr"
-        })
-
-    # Credits in foreign statements are marked as deduction
-    total_amount += sum(float(item["amount"].replace(",","")) * (-1 if item["type"] == "Cr" else 1) for item in foreign)
+            # Credits in foreign statements are marked as deduction
+            total_amount += sum(float(item["amount"].replace(",","")) * (-1 if item["type"] == "Cr" else 1) for item in foreign)
 
     print("Processed " + input + ". Total due should be " + str(total_amount))
 
