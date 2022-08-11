@@ -7,11 +7,13 @@ def process(input, output, password):
 
     total_amount=0.0
     
+    indian = []
+    foreign = []
+    
     for page in pages:
         if page.extract_text().find("Domestic Transactions") > 0:
             print("Domestic");
             
-            indian = []
             for (index, row) in enumerate(page.extract_table()):
                 if index == 0 or row[0] == "" or row[0] == None:
                     continue
@@ -34,7 +36,6 @@ def process(input, output, password):
 
         elif page.extract_text().find("International Transactions") > 0:
             print("Foreign")
-            foreign = []
 
             # Foreign transactions
             table_settings={
