@@ -1,7 +1,7 @@
 import pdfplumber
-import csv, os, argparse
+import csv
 
-def process(input, output, password):
+def process_pdf_old(input, output, password, debugLog=False):
     pdf = pdfplumber.open(input, password=password)
     pages = pdf.pages
 
@@ -12,7 +12,7 @@ def process(input, output, password):
     
     for page in pages:
         if page.extract_text().find("Domestic Transactions") > 0:
-            print("Domestic");
+            print("Domestic") if debugLog else 0
             
             for (index, row) in enumerate(page.extract_table()):
                 if index == 0 or row[0] == "" or row[0] == None:
@@ -20,7 +20,7 @@ def process(input, output, password):
 
                 amount_index = len(row) - 2
                 
-                print(row)
+                print(row) if debugLog else 0
 
                 indian.append({
                     "date": row[0].replace("null",""),
@@ -35,7 +35,7 @@ def process(input, output, password):
                 total_amount += sum(float(item["amount"].replace(",","")) * (0 if item["type"] == "Cr" else 1) for item in indian)
 
         elif page.extract_text().find("International Transactions") > 0:
-            print("Foreign")
+            print("Foreign") if debugLog else 0
 
             # Foreign transactions
             table_settings={
@@ -49,7 +49,7 @@ def process(input, output, password):
                 
                 amount_index = len(row) - 2
                 
-                print(row)
+                print(row) if debugLog else 0
 
                 foreign.append({
                     "date": row[0].replace("null",""),
@@ -64,7 +64,7 @@ def process(input, output, password):
             # Credits in foreign statements are marked as deduction
             total_amount += sum(float(item["amount"].replace(",","")) * (-1 if item["type"] == "Cr" else 1) for item in foreign)
 
-    print("Processed " + input + ". Total due should be " + str(total_amount))
+    print("Processed " + input + ". Total due should be " + str(total_amount)) if debugLog else 0
 
     # Output to CSV
     combined = []
@@ -78,28 +78,3 @@ def process(input, output, password):
 
         for row in combined:
             writer.writerow({ key: row[key] for key in fields })
-
-
-def main(args):
-    for file_name in os.listdir(args.in_dir):
-        root, ext = os.path.splitext(file_name)
-        if ext.lower() != '.pdf':
-            continue
-
-        pdf_path = os.path.join(args.in_dir, file_name)
-
-        out_name = root + '.csv'
-        out_path = os.path.join(args.out_dir, out_name)
-
-        print(f'Processing: {pdf_path}')
-        process(pdf_path, out_path, args.password)
-        print(f'Output file: {out_path}')
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--in-dir', type=str, required=True, help='directory to read statement PDFs from.')
-    parser.add_argument('--out-dir', type=str, required=True, help='directory to store statement CSV to.')
-    parser.add_argument('--password', type=str, default=None, help='password for the statement PDF.')
-    args = parser.parse_args()
-
-    main(args)

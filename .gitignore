@@ -1,3 +1,5 @@
 input/*
 output/*
 env/*
+.venv/*
+__pycache__/

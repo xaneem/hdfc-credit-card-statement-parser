@@ -1,7 +1,8 @@
-chardet==4.0.0
-pdfminer.six==20200517
-pdfplumber==0.5.28
-Pillow==8.3.2
-pycryptodome==3.10.4
-sortedcontainers==2.4.0
-Wand==0.6.7
+cffi==2.0.0
+charset-normalizer==3.4.4
+cryptography==46.0.3
+pdfminer.six==20251107
+pdfplumber==0.11.8
+pillow==12.0.0
+pycparser==2.23
+pypdfium2==5.1.0
